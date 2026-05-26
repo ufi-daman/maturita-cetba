@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maturitní četba</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1410;
+    --paper: #f5f0e8;
+    --paper2: #ede8de;
+    --accent: #8b2e0f;
+    --accent2: #2e5f8b;
+    --muted: #7a7060;
+    --border: #c8bfaa;
+    --tip-bg: #eef4f0;
+    --tip-border: #3a7a5a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 30px,
+      rgba(255,255,255,0.025) 30px,
+      rgba(255,255,255,0.025) 31px
+    );
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    position: relative;
+    margin-bottom: 0.5rem;
+  }
+  header p {
+    font-size: 0.9rem;
+    color: rgba(245,240,232,0.6);
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    position: relative;
+  }
+
+  .controls {
+    background: var(--paper2);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+  #search {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2.2rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #search:focus { border-color: var(--accent2); }
+
+  .filter-btns { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+
+  #count {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .glossary {
+    margin: 1rem 2rem 0;
+    background: var(--paper2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+  }
+  .glossary summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.5rem 0;
+    user-select: none;
+  }
+  .glossary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.6rem;
+    padding: 0.75rem 0 0.5rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  .glossary-grid b { color: var(--accent, #b8860b); }
+  @media (max-width: 600px) {
+    .glossary { margin: 1rem; }
+    .glossary-grid { grid-template-columns: 1fr; }
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .card:hover {
+    box-shadow: 0 8px 32px rgba(26,20,16,0.12);
+    transform: translateY(-2px);
+  }
+  .card.hidden { display: none; }
+
+  .card-header {
+    padding: 1.25rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .card-num {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 0.35rem;
+  }
+  .card-sub {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    line-height: 1.4;
+  }
+  .card-badges {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+  }
+  .badge {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .badge-proza { background: #e8f0e8; color: #2a5a2a; }
+  .badge-poezie { background: #f0e8f0; color: #5a2a5a; }
+  .badge-drama { background: #e8eaf8; color: #2a2a7a; }
+  .badge-czech { background: #fdf0e0; color: #7a4a0a; }
+  .badge-world { background: #e8f4f8; color: #0a4a6a; }
+
+  .card-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 12px;
+    color: var(--accent2);
+    font-weight: 500;
+  }
+  .card-toggle svg {
+    transition: transform 0.25s;
+  }
+  .card.open .card-toggle svg { transform: rotate(180deg); }
+
+  .card-body {
+    display: none;
+    padding: 0 1.25rem 1.25rem;
+  }
+  .card.open .card-body { display: block; }
+
+  .sec {
+    margin-top: 1rem;
+  }
+  .sec-title {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.6rem;
+  }
+  .field {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  .field-label {
+    font-weight: 500;
+    color: var(--accent);
+    min-width: 120px;
+    flex-shrink: 0;
+    font-size: 12px;
+    padding-top: 0.1em;
+  }
+  .field-val { color: var(--ink); }
+  .field-glosar {
+    background: rgba(184,134,11,0.07);
+    border-left: 3px solid var(--accent, #b8860b);
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    margin: 0.3rem 0;
+  }
+  .field-glosar .field-val { font-size: 0.85rem; line-height: 1.5; }
+  .sec-quiz {
+    background: rgba(70,130,180,0.06);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+  }
+  .sec-quiz .field-label { color: #4682b4; }
+  .sec-quotes .field-val {
+    font-style: italic;
+    color: #6b5b4a;
+  }
+  .sec-quotes .field-label { display: none; }
+
+  .tips-list {
+    list-style: none;
+    margin-top: 0.2rem;
+  }
+  .tips-list li {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+    font-size: 13px;
+    line-height: 1.5;
+    background: var(--tip-bg);
+    border-left: 2px solid var(--tip-border);
+    padding: 0.4rem 0.6rem;
+    border-radius: 0 3px 3px 0;
+    color: #1a3a2a;
+  }
+  .tips-list li::before {
+    content: '\2192';
+    color: var(--tip-border);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 0.05em;
+  }
+
+  #no-results {
+    display: none;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--muted);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    grid-column: 1/-1;
+  }
+
+  @media (max-width: 600px) {
+    .grid { padding: 1rem; gap: 1rem; }
+    .controls { padding: 0.75rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Maturitní četba</h1>
+  <p>Přehled 20 knih · struktura ústní zkoušky</p>
+</header>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="search" placeholder="Hledat autor, název, téma…">
+  </div>
+  <div class="filter-btns">
+    <button class="filter-btn active" data-filter="all">Vše</button>
+    <button class="filter-btn" data-filter="proza">Próza</button>
+    <button class="filter-btn" data-filter="poezie">Poezie</button>
+    <button class="filter-btn" data-filter="drama">Drama</button>
+    <button class="filter-btn" data-filter="czech">Česká lit.</button>
+    <button class="filter-btn" data-filter="world">Světová lit.</button>
+  </div>
+  <span id="count">20 knih</span>
+</div>
+
+<details class="glossary">
+  <summary>📖 Slovníček literárních pojmů (tropy a figury)</summary>
+  <div class="glossary-grid">
+    <div><b>Metafora</b> — přenesení významu na základě podobnosti (Julie je slunce).</div>
+    <div><b>Metonymie</b> — záměna na základě věcné souvislosti (vypít sklenici = obsah).</div>
+    <div><b>Personifikace</b> — neživým věcem se přisuzují lidské vlastnosti (basa promluví).</div>
+    <div><b>Epiteton</b> — básnický přívlastek (stará vrba, chobotnatý záliv).</div>
+    <div><b>Přirovnání</b> — srovnání dvou věcí spojkou jako/jak (bledý jako stěna).</div>
+    <div><b>Symbol</b> — konkrétní obraz zastupující abstraktní význam (havran = smrt).</div>
+    <div><b>Alegorie</b> — obrazné vyjádření, kde celé dílo má skrytý druhý význam (Král Lávra = kritika absolutismu).</div>
+    <div><b>Oxymoron</b> — spojení dvou protikladných slov (chladný oheň, mrtvé milé).</div>
+    <div><b>Antiteze</b> — postavení dvou protikladů proti sobě (krásný Dorian × ošklivý portrét).</div>
+    <div><b>Kontrast</b> — zvýraznění rozdílu (mládí × smrt, světlo × tma).</div>
+    <div><b>Hyperbola</b> — záměrné zveličení (strach ze ztráty celého světa).</div>
+    <div><b>Ironie</b> — řečeno opak toho, co se myslí; skrytý výsměch.</div>
+    <div><b>Paradox</b> — zdánlivě protismyslné tvrzení s hlubší pravdou (pokušení se zbavíš tím, že mu podlehneš).</div>
+    <div><b>Apostrofa</b> — oslovení nepřítomné osoby nebo věci (Romeo volá k nepřítomné Julii).</div>
+    <div><b>Anafora</b> — opakování slova na začátku veršů/vět.</div>
+    <div><b>Epifora</b> — opakování slova na konci veršů/vět.</div>
+    <div><b>Epizeuxis</b> — opakování slova bezprostředně za sebou (Romeo, Romeo).</div>
+    <div><b>Aliterace</b> — opakování stejných hlásek na začátku slov (zvuková malba).</div>
+    <div><b>Gradace</b> — stupňování, vrstvení napětí směrem k vrcholu.</div>
+    <div><b>Inverze</b> — neobvyklý slovosled (dřevěné jeho lože prasklo).</div>
+    <div><b>Blankvers</b> — nerýmovaný pětistopý jambický verš (Shakespeare).</div>
+    <div><b>Er-forma</b> — vyprávění ve 3. osobě (on/ona).</div>
+    <div><b>Ich-forma</b> — vyprávění v 1. osobě (já).</div>
+  </div>
+</details>
+
+<div class="grid" id="grid">
+<div id="no-results">Žádná kniha neodpovídá hledání.</div>
+</div>
+
+<script src="books.js"></script>
+<script>
+const grid = document.getElementById('grid');
+
+function badgeClass(b) {
+  const s = b.toLowerCase();
+  if (s.includes('próza') || s.includes('novel') || s.includes('autobio') || s.includes('pohád') || s.includes('dystop') || s.includes('sociál') || s.includes('vývojový')) return 'badge-proza';
+  if (s.includes('poezie') || s.includes('poem') || s.includes('báseň') || s.includes('poema')) return 'badge-poezie';
+  if (s.includes('drama') || s.includes('hra') || s.includes('komed') || s.includes('tragéd')) return 'badge-drama';
+  if (s.includes('česká')) return 'badge-czech';
+  if (s.includes('světová')) return 'badge-world';
+  return 'badge-proza';
+}
+
+books.forEach(book => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.kind = book.kind;
+  card.dataset.origin = book.origin;
+  card.dataset.search = [book.title, book.author, book.badges.join(' '),
+    book.sections.map(s => s.fields.map(f => f[1]).join(' ')).join(' '),
+    book.tips.join(' ')].join(' ').toLowerCase();
+
+  const badgesHtml = book.badges.map(b =>
+    `<span class="badge ${badgeClass(b)}">${b}</span>`
+  ).join('');
+
+  const sectionsHtml = book.sections.map(sec => {
+    let secClass = 'sec';
+    if (sec.title === 'Kontrolní otázky') secClass += ' sec-quiz';
+    if (sec.title === 'Klíčové citáty') secClass += ' sec-quotes';
+    return `
+    <div class="${secClass}">
+      <div class="sec-title">${sec.title}</div>
+      ${sec.fields.map(([label, val]) => `
+        <div class="field${label.startsWith('📖') ? ' field-glosar' : ''}">
+          <span class="field-label">${label}</span>
+          <span class="field-val">${val}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;}).join('');
+
+  const tipsHtml = book.tips.map(t => `<li>${t}</li>`).join('');
+
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="card-num">Kniha ${book.num} z 20</div>
+      <div class="card-title">${book.title}</div>
+      <div class="card-sub">${book.author} — ${book.sub}</div>
+      <div class="card-badges">${badgesHtml}</div>
+      <div class="card-toggle">
+        <span>Zobrazit přehled</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+    <div class="card-body">
+      ${sectionsHtml}
+      <div class="sec">
+        <div class="sec-title">Tipy pro maturitu</div>
+        <ul class="tips-list">${tipsHtml}</ul>
+      </div>
+    </div>
+  `;
+
+  card.querySelector('.card-header').addEventListener('click', () => {
+    card.classList.toggle('open');
+    const span = card.querySelector('.card-toggle span');
+    span.textContent = card.classList.contains('open') ? 'Skrýt' : 'Zobrazit přehled';
+  });
+
+  grid.insertBefore(card, document.getElementById('no-results'));
+});
+
+const searchEl = document.getElementById('search');
+const countEl = document.getElementById('count');
+const filterBtns = document.querySelectorAll('.filter-btn');
+let activeFilter = 'all';
+
+function update() {
+  const q = searchEl.value.toLowerCase().trim();
+  let visible = 0;
+  document.querySelectorAll('.card').forEach(card => {
+    const matchFilter = activeFilter === 'all'
+      || card.dataset.kind === activeFilter
+      || card.dataset.origin === activeFilter;
+    const matchSearch = !q || card.dataset.search.includes(q);
+    if (matchFilter && matchSearch) {
+      card.classList.remove('hidden');
+      visible++;
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+  countEl.textContent = `${visible} ${visible === 1 ? 'kniha' : visible < 5 ? 'knihy' : 'knih'}`;
+  document.getElementById('no-results').style.display = visible === 0 ? 'block' : 'none';
+}
+
+searchEl.addEventListener('input', update);
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    update();
+  });
+});
+</script>
+</body>
+</html>
